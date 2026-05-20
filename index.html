@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Trading Probability Calculator — Santiago Avnaim</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#070f07;font-family:'Share Tech Mono',monospace;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;}
+.app{width:100%;max-width:500px;}
+.header{margin-bottom:24px;}
+.header .tag{font-size:10px;letter-spacing:4px;color:#22c55e;margin-bottom:6px;}
+.header h1{font-family:'Orbitron',monospace;font-size:28px;color:#e8e8ff;letter-spacing:1px;line-height:1.1;font-weight:900;}
+.header .sub{font-size:10px;color:#4a4a6a;margin-top:6px;}
+.tabs{display:flex;gap:8px;margin-bottom:16px;}
+.tab-btn{cursor:pointer;padding:8px 18px;border-radius:8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;border:1px solid #1e1e3a;background:transparent;font-family:'Share Tech Mono',monospace;transition:all 0.2s;color:#4a4a6a;}
+.tab-btn:hover{border-color:#22c55e55;color:#22c55e;}
+.tab-btn.active{background:#22c55e22;border-color:#22c55e;color:#86efac;}
+.section{background:#0d150d;border:1px solid #22c55e22;border-radius:14px;padding:20px;margin-bottom:16px;}
+.section-title{font-size:10px;letter-spacing:3px;color:#22c55e;text-transform:uppercase;margin-bottom:14px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10px;color:#4a6a4a;letter-spacing:1.5px;text-transform:uppercase;}
+.field input{background:#070f07;border:1px solid #1e2e1e;border-radius:8px;color:#c8e6c8;padding:9px 12px;font-size:13px;font-family:'Share Tech Mono',monospace;outline:none;transition:border 0.2s;}
+.field input:focus{border-color:#22c55e;}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type=number]{-moz-appearance:textfield;}
+.slider-label{font-size:10px;color:#4a4a6a;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.slider-label span{color:#22c55e;}
+input[type=range]{width:100%;accent-color:#22c55e;cursor:pointer;}
+.slider-marks{display:flex;justify-content:space-between;font-size:10px;color:#2a2a4a;margin-top:3px;}
+.badge{display:inline-block;font-size:11px;padding:4px 14px;border-radius:20px;letter-spacing:2px;font-weight:700;margin-bottom:12px;}
+.badge.long{background:#22c55e22;border:1px solid #22c55e;color:#22c55e;}
+.badge.short{background:#ef444422;border:1px solid #ef4444;color:#ef4444;}
+.conf-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.conf-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background 0.15s;border:1px solid transparent;}
+.conf-item:hover{background:#22c55e11;border-color:#22c55e22;}
+.conf-item.active{background:#22c55e1a;border-color:#22c55e44;}
+.conf-check{width:16px;height:16px;border-radius:4px;border:1px solid #2a4a2a;background:transparent;display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;flex-shrink:0;transition:all 0.15s;}
+.conf-item.active .conf-check{border-color:#22c55e;background:#22c55e;}
+.conf-label{font-size:10px;color:#4a6a4a;line-height:1.4;}
+.conf-item.active .conf-label{color:#86efac;}
+.conf-pct{color:#2a4a2a;margin-left:4px;}
+.conf-item.active .conf-pct{color:#22c55e;}
+.mult-banner{margin-top:10px;font-size:10px;color:#eab308;text-align:center;padding:6px;background:#eab30811;border-radius:6px;}
+.calc-btn{width:100%;padding:13px;border-radius:10px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;transition:all 0.2s;border:1px solid #22c55e;background:#22c55e22;color:#86efac;margin-top:4px;}
+.calc-btn:hover{background:#22c55e;color:#000;transform:translateY(-1px);}
+.calc-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none;}
+.result-section{margin-top:16px;animation:fadeUp 0.5s forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.gauges{display:grid;gap:16px;margin-bottom:20px;}
+.gauge-box{text-align:center;}
+.gauge-label{font-size:9px;color:#4a6a4a;letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;}
+.gauge-dist{font-size:10px;color:#4a6a4a;margin-top:2px;}
+.stats{border-top:1px solid #1e2e1e;padding-top:14px;display:flex;flex-direction:column;gap:8px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;}
+.stat-label{font-size:11px;color:#4a6a4a;}
+.stat-value{font-size:13px;color:#c8e6c8;font-weight:600;}
+.interp{margin-top:14px;padding:12px 14px;background:#070f07;border-radius:8px;font-size:11px;color:#6a6a8a;line-height:1.8;}
+.weights-section .w-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#0d150d;border-radius:8px;margin-bottom:8px;border:1px solid #1e2e1e;}
+.weights-section .w-row.starred{border-color:#eab30844;}
+.w-label{font-size:11px;color:#6a8a6a;flex:1;}
+.w-controls{display:flex;align-items:center;gap:8px;}
+.w-btn{width:22px;height:22px;border:1px solid #1e2e1e;border-radius:4px;background:#070f07;color:#22c55e;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1;}
+.w-input{background:#070f07;border:1px solid #1e2e1e;border-radius:6px;color:#c8e6c8;padding:4px 8px;font-size:12px;font-family:'Share Tech Mono',monospace;width:52px;text-align:center;outline:none;}
+.w-input:focus{border-color:#22c55e;}
+.w-pct{font-size:10px;color:#4a6a4a;width:16px;}
+.star-btn{width:24px;height:24px;border-radius:6px;cursor:pointer;border:1px solid #2a4a2a;background:transparent;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all 0.15s;}
+.star-btn.active{border-color:#eab308;background:#eab30822;}
+.w-hint{margin-top:8px;font-size:9px;color:#6a5a2a;text-align:center;}
+.guide-item{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #1e2e1e;}
+.guide-title{font-size:11px;color:#22c55e;font-weight:700;margin-bottom:6px;letter-spacing:1px;}
+.guide-body{font-size:11px;color:#6a8a6a;line-height:1.8;}
+.footer-note{margin-top:12px;font-size:9px;color:#2a4a2a;text-align:center;line-height:1.8;}
+.linkedin{margin-top:16px;display:flex;align-items:center;justify-content:center;}
+.linkedin a{display:flex;align-items:center;gap:6px;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid #22c55e33;background:#22c55e11;}
+.linkedin span{font-size:10px;color:#22c55e;font-family:'Share Tech Mono',monospace;letter-spacing:1px;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:#070f07;}
+::-webkit-scrollbar-thumb{background:#1e2e1e;border-radius:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="tag">SISTEMA DE ANÁLISIS</div>
+    <h1>PROB. DE<br>OCURRENCIA</h1>
+    <div class="sub">Browniano + Confluencias Fibonacci / SMA</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('calc')">Calculadora</button>
+    <button class="tab-btn" onclick="switchTab('weights')">⚙ Pesos %</button>
+    <button class="tab-btn" onclick="switchTab('guide')">📖 Guía</button>
+  </div>
+  <div id="tab-calc"></div>
+  <div id="tab-weights" style="display:none"></div>
+  <div id="tab-guide" style="display:none"></div>
+  <div class="footer-note">
+    Modelo estadístico + scoring de confluencias — no garantiza resultados futuros.<br>
+    Usá siempre gestión de riesgo.
+  </div>
+  <div class="linkedin">
+    <a href="https://www.linkedin.com/in/santiago-avnaim-597569131/" target="_blank" rel="noopener noreferrer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#22c55e"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      <span>Santiago Avnaim</span>
+    </a>
+  </div>
+</div>
+
+<script>
+// ── Math ──────────────────────────────────────────────
+function NORM(z) {
+  var a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  var sign = z < 0 ? -1 : 1;
+  var x = Math.abs(z)/Math.sqrt(2);
+  var t = 1/(1+p*x);
+  var y = 1-(((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x));
+  return 0.5*(1+sign*y);
+}
+function clamp(v,mn,mx){ mn=mn||0; mx=mx||100; return Math.min(mx,Math.max(mn,v)); }
+
+// ── Weights ───────────────────────────────────────────
+var BASE = [
+  {id:"fib618",  label:"Target en Fibo 0.618", v:8,  hard:true},
+  {id:"fib382",  label:"Target en Fibo 0.382", v:5,  hard:true},
+  {id:"sma10",   ll:"SMA 10 por encima del spot", ls:"SMA 10 por debajo del spot", v:10, hard:true},
+  {id:"sma50",   ll:"SMA 50 por encima del spot", ls:"SMA 50 por debajo del spot", v:6,  hard:false},
+  {id:"sma200",  ll:"SMA 200 por encima del spot",ls:"SMA 200 por debajo del spot",v:3,  hard:false},
+  {id:"elong2",  ll:"SMA 10 elongada >2% hacia abajo",ls:"SMA 10 elongada >2% hacia arriba",v:4, hard:false},
+  {id:"elong5",  ll:"SMA 10 elongada >5% hacia abajo",ls:"SMA 10 elongada >5% hacia arriba",v:9, hard:true},
+  {id:"vol",     label:"Volumen creciente", v:4, hard:false},
+  {id:"trendalc",label:"Tendencia general alcista", v:6, hard:false},
+  {id:"trendbaj",label:"Tendencia general bajista", v:6, hard:false},
+  {id:"rsi3070", ll:"RSI < 30 (sobrevendido)", ls:"RSI > 70 (sobrecomprado)", v:15, hard:true},
+  {id:"rsimedia",ll:"RSI claramente por debajo de su media",ls:"RSI claramente por encima de su media",v:3,hard:false},
+  {id:"llavealc",label:"Llave de reversión alcista", v:12, hard:true},
+  {id:"llavebaj",label:"Llave de reversión bajista", v:12, hard:true},
+];
+
+function loadLS(key, def) {
+  try { var s=localStorage.getItem(key); return s ? Object.assign({},def,JSON.parse(s)) : def; } catch(e){ return def; }
+}
+function saveLS(key, obj) { try{ localStorage.setItem(key, JSON.stringify(obj)); }catch(e){} }
+
+var defW = {}; BASE.forEach(function(w){ defW[w.id]=w.v; });
+var defH = {}; BASE.forEach(function(w){ defH[w.id]=w.hard; });
+var defC = {}; BASE.forEach(function(w){ defC[w.id]=false; });
+
+var weights = loadLS("trading_weights", defW);
+var hardD   = loadLS("trading_hard", defH);
+var confs   = Object.assign({}, defC);
+var form    = {precio:"", target:"", stop:"", atr:"", dias:3};
+var result  = null;
+var currentTab = "calc";
+
+function getLabel(w, isLong) {
+  return w.label || (isLong ? w.ll : w.ls);
+}
+
+function isLong() {
+  var p = parseFloat(form.precio), t = parseFloat(form.target);
+  return !p || !t || t >= p;
+}
+
+// ── Tab switching ─────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){
+    b.classList.toggle('active', ['calc','weights','guide'][i]===tab);
+  });
+  document.getElementById('tab-calc').style.display   = tab==='calc'    ? '' : 'none';
+  document.getElementById('tab-weights').style.display = tab==='weights' ? '' : 'none';
+  document.getElementById('tab-guide').style.display   = tab==='guide'   ? '' : 'none';
+}
+
+// ── Gauge SVG ─────────────────────────────────────────
+function gaugeHTML(value) {
+  var v = clamp(value);
+  var color = v >= 65 ? "#22c55e" : v >= 45 ? "#eab308" : "#ef4444";
+  var r = 52, circ = Math.PI * r;
+  var offset = circ - (v/100)*circ;
+  return '<svg width="130" height="78" viewBox="0 0 130 78">' +
+    '<path d="M 10 72 A '+r+' '+r+' 0 0 1 120 72" fill="none" stroke="#0d1a0d" stroke-width="14"/>' +
+    '<path d="M 10 72 A '+r+' '+r+' 0 0 1 120 72" fill="none" stroke="'+color+'" stroke-width="14" stroke-dasharray="'+circ+'" stroke-dashoffset="'+offset+'" stroke-linecap="round" style="transition:stroke-dashoffset 0.9s"/>' +
+    '<text x="65" y="68" text-anchor="middle" fill="'+color+'" font-size="22" font-family="Share Tech Mono,monospace" font-weight="700">'+v.toFixed(1)+'%</text>' +
+    '</svg>';
+}
+
+// ── Render calc tab ───────────────────────────────────
+function renderCalc() {
+  var il = isLong();
+  var html = '<div class="section">';
+  html += '<div class="section-title">Datos del Trade</div>';
+  if(form.precio && form.target) {
+    html += '<div class="badge '+(il?'long':'short')+'">'+(il?'▲ LONG':'▼ SHORT')+'</div>';
+  }
+  html += '<div class="grid2">';
+  [['Precio Actual','precio','ej: 1580.71'],['Target','target','ej: 1647.16'],['Stop Loss (opcional)','stop','ej: 1490.00'],['ATR 14 (diario)','atr','ej: 38.50']].forEach(function(f){
+    html += '<div class="field"><label>'+f[0]+'</label><input type="number" id="inp-'+f[1]+'" value="'+form[f[1]]+'" placeholder="'+f[2]+'" oninput="setForm(\''+f[1]+'\',this.value)"/></div>';
+  });
+  html += '</div>';
+  html += '<div class="slider-label">Horizonte: <span>'+form.dias+' día'+(form.dias!=1?'s':'')+'</span></div>';
+  html += '<input type="range" min="1" max="30" value="'+form.dias+'" oninput="setForm(\'dias\',this.value)">';
+  html += '<div class="slider-marks"><span>1d</span><span>15d</span><span>30d</span></div>';
+  html += '</div>';
+
+  // Confluences
+  html += '<div class="section"><div class="section-title">Confluencias (marcá las que aplican)</div><div class="conf-grid">';
+  BASE.forEach(function(w){
+    var lbl = getLabel(w, il);
+    var active = confs[w.id];
+    html += '<div class="conf-item'+(active?' active':'')+'" onclick="toggleConf(\''+w.id+'\')">';
+    html += '<div class="conf-check">'+(active?'✓':'')+'</div>';
+    html += '<div class="conf-label">'+lbl+'<span class="conf-pct">+'+weights[w.id]+'%</span></div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  var starActive = BASE.filter(function(w){ return confs[w.id] && hardD[w.id]; }).length;
+  if(starActive >= 3) {
+    html += '<div class="mult-banner">✦ '+starActive+' confluencias ⭐ activas → bonus multiplicador activo</div>';
+  }
+  html += '</div>';
+
+  var allFilled = form.precio && form.target && form.atr && form.dias;
+  html += '<button class="calc-btn" onclick="calcular()"'+(allFilled?'':' disabled')+'>CALCULAR PROBABILIDAD →</button>';
+
+  if(result) {
+    var r = result;
+    html += '<div class="result-section"><div class="section"><div class="section-title">Resultado</div>';
+    html += '<div class="gauges" style="grid-template-columns:'+(r.probStop!==null?'1fr 1fr':'1fr')+'">';
+    html += '<div class="gauge-box"><div class="gauge-label">Prob. Final Target</div>'+gaugeHTML(r.probFinal)+'<div class="gauge-dist">+$'+r.distTarget.toFixed(2)+'</div></div>';
+    if(r.probStop !== null) {
+      html += '<div class="gauge-box"><div class="gauge-label">Prob. Stop</div>'+gaugeHTML(r.probStop)+'<div class="gauge-dist">-$'+r.distStop.toFixed(2)+'</div></div>';
+    }
+    html += '</div>';
+    html += '<div class="stats">';
+    var rows = [
+      {l:"Prob. base (Browniano)", v:r.probBase.toFixed(1)+'%', c:'#c8e6c8'},
+      {l:"Bonus confluencias", v:'+'+r.bonus.toFixed(1)+'%', c:'#22c55e'},
+    ];
+    if(r.penalty > 0) rows.push({l:"Penalización tendencia", v:'-'+r.penalty.toFixed(1)+'%', c:'#ef4444'});
+    rows.push({l:"Confluencias activas", v:''+r.cnt, c:'#c8e6c8'});
+    rows.push({l:"Volatilidad esperada σ", v:'$'+r.sigma.toFixed(2), c:'#c8e6c8'});
+    if(r.rr) rows.push({l:"Ratio R/R", v:'1 : '+r.rr, c:parseFloat(r.rr)>=2?'#22c55e':'#ef4444'});
+    if(r.probStop !== null) {
+      var esp = (r.probFinal/100*r.distTarget)-(r.probStop/100*r.distStop);
+      rows.push({l:"Esperanza matemática", v:'$'+esp.toFixed(2), c:esp>=0?'#22c55e':'#ef4444'});
+    } else {
+      rows.push({l:"Esperanza matemática", v:'Sin stop — incalculable', c:'#ef4444'});
+    }
+    rows.forEach(function(row){
+      html += '<div class="stat-row"><span class="stat-label">'+row.l+'</span><span class="stat-value" style="color:'+row.c+'">'+row.v+'</span></div>';
+    });
+    html += '</div>';
+    var interp = r.probFinal>=65 ? '✅ Setup de alta probabilidad.' : r.probFinal>=45 ? '⚠️ Probabilidad moderada, manejá bien el riesgo.' : '❌ Baja probabilidad. Buscá más confluencias.';
+    if(r.cnt>=3) interp += ' Las múltiples confluencias mejoran el setup.';
+    if(r.rr && parseFloat(r.rr)>=2) interp += ' El ratio R/R es favorable.';
+    if(r.rr && parseFloat(r.rr)<1) interp += ' ⚠️ El ratio R/R es desfavorable.';
+    var bc = r.probFinal>=60?'#22c55e':r.probFinal>=40?'#eab308':'#ef4444';
+    html += '<div class="interp" style="border:1px solid '+bc+'33">'+interp+'</div>';
+    html += '</div></div>';
+  }
+
+  document.getElementById('tab-calc').innerHTML = html;
+}
+
+// ── Render weights tab ────────────────────────────────
+function renderWeights() {
+  var il = isLong();
+  var html = '<div class="section weights-section"><div class="section-title">Editar Pesos de Confluencias (%)</div>';
+  html += '<div style="font-size:10px;color:#4a6a4a;margin-bottom:16px;line-height:1.7">Editá los % y marcá con ⭐ las confluencias que cuentan para el bonus multiplicador.</div>';
+  html += '<div style="display:flex;justify-content:flex-end;margin-bottom:8px;gap:16px"><span style="font-size:9px;color:#4a6a4a">%</span><span style="font-size:9px;color:#eab308">⭐ MULT</span></div>';
+  BASE.forEach(function(w){
+    var lbl = getLabel(w, il);
+    var starred = hardD[w.id];
+    html += '<div class="w-row'+(starred?' starred':'')+'">';
+    html += '<span class="w-label">'+lbl+'</span>';
+    html += '<div class="w-controls">';
+    html += '<button class="w-btn" onclick="adjW(\''+w.id+'\','+weights[w.id]+'-1)">−</button>';
+    html += '<input class="w-input" type="number" value="'+weights[w.id]+'" onchange="adjW(\''+w.id+'\',this.value)">';
+    html += '<button class="w-btn" onclick="adjW(\''+w.id+'\','+weights[w.id]+'+1)">+</button>';
+    html += '<span class="w-pct">%</span>';
+    html += '<button class="star-btn'+(starred?' active':'')+'" onclick="toggleHard(\''+w.id+'\')">'+(starred?'⭐':'☆')+'</button>';
+    html += '</div></div>';
+  });
+  html += '<div class="w-hint">⭐ marcadas = cuentan para bonus multiplicador (3+ → x1.15, 5+ → x1.10 adicional)</div>';
+  html += '</div>';
+  document.getElementById('tab-weights').innerHTML = html;
+}
+
+// ── Render guide tab ──────────────────────────────────
+function renderGuide() {
+  var items = [
+    {t:"ATR — Rango Verdadero Medio", b:"Mide cuánto se mueve el activo en promedio por día. Es la base del cálculo de probabilidad. En TradingView buscalo como 'Rango verdadero medio', período 14."},
+    {t:"Fibonacci 0.618 / 0.382", b:"Niveles donde el precio tiende a frenar o rebotar. Para ver soportes trazás de mínimo a máximo. Para ver resistencias trazás de máximo a mínimo. Tildás si tu target coincide con alguno de esos niveles."},
+    {t:"SMA 10 / 50 / 200", b:"Medias móviles simples. El precio estadísticamente tiende a converger hacia ellas. Si están entre el spot y tu target suman probabilidad de convergencia."},
+    {t:"Elongación SMA 10 >2% / >5%", b:"Cuando el precio se aleja mucho de la SMA 10, tiende a converger de vuelta. Calculás: (SMA10 − Precio) / SMA10 × 100. Solo una a la vez."},
+    {t:"Volumen creciente", b:"Barras de volumen más altas que el promedio reciente acompañando el movimiento. Más participantes = movimiento más confiable."},
+    {t:"Tendencia general alcista / bajista", b:"Dirección general del precio. Si va a favor suma. Si va en contra resta — penalización automática."},
+    {t:"RSI < 30 / > 70", b:"Por debajo de 30 = sobrevendido → probable rebote. Por encima de 70 = sobrecomprado → probable caída. Señal más rara y de mayor peso."},
+    {t:"RSI vs su media", b:"Cuando el RSI está claramente separado de su media (línea amarilla) indica momentum direccional. Si están juntos no tildés."},
+    {t:"Llave de reversión alcista", b:"Tendencia previa bajista → vela que hace nuevo mínimo pero cierra por encima del máximo anterior → vela siguiente confirma superando ese máximo."},
+    {t:"Llave de reversión bajista", b:"Tendencia previa alcista → vela que hace nuevo máximo pero cierra por debajo del mínimo anterior → vela siguiente confirma perforando ese mínimo. Contraria a tu dirección aplica penalización."},
+  ];
+  var html = '<div class="section"><div class="section-title">Guía de Indicadores</div>';
+  items.forEach(function(item){
+    html += '<div class="guide-item"><div class="guide-title">'+item.t+'</div><div class="guide-body">'+item.b+'</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('tab-guide').innerHTML = html;
+}
+
+// ── Actions ───────────────────────────────────────────
+function setForm(key, val) {
+  form[key] = val;
+  result = null;
+  renderCalc();
+}
+
+function toggleConf(id) {
+  confs[id] = !confs[id];
+  if(id==='elong2' && confs.elong2) confs.elong5 = false;
+  if(id==='elong5' && confs.elong5) confs.elong2 = false;
+  renderCalc();
+}
+
+function adjW(id, val) {
+  val = Math.max(0, Math.min(30, parseInt(val)||0));
+  weights[id] = val;
+  saveLS("trading_weights", weights);
+  renderWeights();
+}
+
+function toggleHard(id) {
+  hardD[id] = !hardD[id];
+  saveLS("trading_hard", hardD);
+  renderWeights();
+}
+
+function calcular() {
+  var precio=parseFloat(form.precio), target=parseFloat(form.target);
+  var stop=parseFloat(form.stop)||null, atr=parseFloat(form.atr), dias=parseFloat(form.dias);
+  if(!precio||!target||!atr||!dias) return;
+  var il = isLong();
+  var sigma = atr*Math.sqrt(dias);
+  var distTarget = Math.abs(target-precio);
+  var distStop = stop ? (il ? precio-stop : stop-precio) : null;
+  var z = distTarget/sigma;
+  var probBase = (1-NORM(z))*100;
+  var bonus=0, penalty=0;
+  BASE.forEach(function(w){
+    if(!confs[w.id]) return;
+    if(il  && w.id==="trendbaj") { penalty+=weights[w.id]; return; }
+    if(!il && w.id==="trendalc") { penalty+=weights[w.id]; return; }
+    if(il  && w.id==="llavebaj") { penalty+=weights[w.id]; return; }
+    if(!il && w.id==="llavealc") { penalty+=weights[w.id]; return; }
+    bonus+=weights[w.id];
+  });
+  var cnt = BASE.filter(function(w){ return confs[w.id] && !(il&&w.id==="trendbaj") && !(!il&&w.id==="trendalc") && !(il&&w.id==="llavebaj") && !(!il&&w.id==="llavealc"); }).length;
+  var cntM = BASE.filter(function(w){ return confs[w.id] && hardD[w.id] && !(il&&w.id==="trendbaj") && !(!il&&w.id==="trendalc") && !(il&&w.id==="llavebaj") && !(!il&&w.id==="llavealc"); }).length;
+  if(cntM>=3) bonus*=1.15;
+  if(cntM>=5) bonus*=1.1;
+  var probFinal = clamp(probBase+bonus-penalty);
+  var probStop = (stop && distStop>0) ? clamp(NORM((-distStop)/sigma)*100) : null;
+  var rr = (distStop && distStop>0) ? (distTarget/distStop).toFixed(2) : null;
+  result = {probBase:clamp(probBase),probFinal,probStop,rr,distTarget,distStop,sigma,bonus:clamp(bonus),penalty,cnt,cntM,isLong:il};
+  renderCalc();
+}
+
+// ── Init ──────────────────────────────────────────────
+renderCalc();
+renderWeights();
+renderGuide();
+</script>
+</body>
+</html>
